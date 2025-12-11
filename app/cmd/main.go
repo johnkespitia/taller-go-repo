@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	events "app/pkg/api/events"
-	"app/pkg/db"
+		events "github.com/johnkespitia/taller-go-repo/app/pkg/api/events"
+		"github.com/johnkespitia/taller-go-repo/app/pkg/db"
 )
 
 func main() {
@@ -17,8 +17,7 @@ func main() {
 	http.HandleFunc("/", helloHandler)
 	http.HandleFunc("/api/health", healthHandler)
 
-	http.HandleFunc("/api/events", events.HandleEvents)
-
+	http.HandleFunc("/api/events/", events.HandleEvents)
 	fmt.Println("Server running on http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

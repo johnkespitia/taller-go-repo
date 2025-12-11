@@ -5,6 +5,7 @@ import (
     "database/sql"
     "fmt"
     "os"
+    "strings"
     "time"
 
     _ "github.com/lib/pq"
@@ -28,6 +29,15 @@ func Connect() error {
             port = "5432"
         }
         dsn = fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", user, pass, host, port, name)
+    }
+    // Ensure sslmode=disable for local docker Postgres if not already set
+    // lib/pq may default to require which fails against local Postgres without SSL.
+    if !strings.Contains(strings.ToLower(dsn), "sslmode=") {
+        if strings.Contains(dsn, "?") {
+            dsn = dsn + "&sslmode=disable"
+        } else {
+            dsn = dsn + "?sslmode=disable"
+        }
     }
 
     db, err := sql.Open("postgres", dsn)

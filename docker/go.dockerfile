@@ -46,7 +46,7 @@ RUN if [ -f go.mod ]; then go mod download; fi
 RUN (go install github.com/cosmtrek/air@latest) || go install github.com/githubnemo/CompileDaemon@latest
 
 # Create a small entrypoint that prefers `air` if available, otherwise runs CompileDaemon.
-RUN printf '#!/bin/sh\n\nif command -v air >/dev/null 2>&1; then\n  exec air -c .air.toml\nelse\n  exec CompileDaemon -log-prefix=false -build="go build -o ./tmp/main ./..." -command="./tmp/main"\nfi\n' > /usr/local/bin/dev-entrypoint \
+RUN printf '#!/bin/sh\n\n# ensure tmp dir exists\nmkdir -p ./tmp\n\nif command -v air >/dev/null 2>&1; then\n  exec air -c .air.toml\nelse\n  # build only the main package under ./cmd to avoid "multiple packages" error\n  exec CompileDaemon -log-prefix=false -build="go build -o ./tmp/main ./cmd" -command="./tmp/main"\nfi\n' > /usr/local/bin/dev-entrypoint \
 	&& chmod +x /usr/local/bin/dev-entrypoint
 
 # Expose app port and set working dir. In dev you should mount your source
