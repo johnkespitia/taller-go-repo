@@ -9,10 +9,10 @@ import (
 
 type Event struct {
 	ID          string    `json:"id"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	StartTime   time.Time `json:"start_time"`
-	EndTime     time.Time `json:"end_time"`
+	Title       string    `json:"title" validate:"required,min=1,max=255"`
+	Description string    `json:"description" validate:"max=1000"`
+	StartTime   time.Time `json:"start_time" validate:"required"`
+	EndTime     time.Time `json:"end_time" validate:"required"`
 	CreatedAt   time.Time `json:"created_at"`
 }
 

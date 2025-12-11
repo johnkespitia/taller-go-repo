@@ -60,7 +60,7 @@ func GetEventsHandler(w http.ResponseWriter, r *http.Request, repo *models.Event
 	if(id != ""){
 		event, err := repo.GetByID(ctx, id)
 		if err != nil {
-			http.Error(w, "failed to get event", http.StatusInternalServerError)
+			http.Error(w, "event not found", http.StatusNotFound)
 			return
 		}
 		json.NewEncoder(w).Encode(event)
