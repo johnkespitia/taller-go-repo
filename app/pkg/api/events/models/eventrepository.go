@@ -73,12 +73,3 @@ func (r *EventRepository) Update(ctx context.Context, event *Event) error {
 	_, err := r.db.ExecContext(ctx, query, event.Title, event.Description, event.StartTime, event.EndTime, event.ID)
 	return err
 }
-
-func (r *EventRepository) Delete(ctx context.Context, id string) error {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	query := `DELETE FROM events WHERE id = $1`
-	_, err := r.db.ExecContext(ctx, query, id)
-	return err
-}

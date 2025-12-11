@@ -1,20 +1,20 @@
-**Proyecto**: Taller Go Repo
+**Project**: Taller Go Repo
 
-- **Descripción**: Aplicación HTTP en Go que expone una API simple para gestionar eventos y usa PostgreSQL como almacenamiento. Se suministra con archivos Docker para desarrollo y producción.
+- **Description**: HTTP application in Go that exposes a simple API for managing events and uses PostgreSQL as storage. It comes with Docker files for development and production.
 
-**Requisitos**:
-- **Docker / Docker Compose**: necesarios para levantar la base de datos y la app en contenedores.
-- **Go 1.21**: si quieres compilar o ejecutar la app localmente.
+**Requirements**:
+- **Docker / Docker Compose**: required to start the database and app in containers.
+- **Go 1.21**: if you want to compile or run the app locally.
 
-**Archivos importantes**:
-- **`docker-compose.yml`**: definición de servicios `app` y `db`.
-- **`docker/go.dockerfile`**: Dockerfile para la aplicación (tiene target `builder` y `dev`).
-- **`docker/posgresql.dockerfile`**: Dockerfile para la imagen de DB (usa `postgres`).
-- **`docker-entrypoint-initdb.d/init.sql`**: script de inicialización de la base de datos (crea tabla `events`).
-- **`app/`**: código go de la aplicación (entrypoint `app/cmd/main.go`).
+**Important files**:
+- **`docker-compose.yml`**: definition of `app` and `db` services.
+- **`docker/go.dockerfile`**: Dockerfile for the application (has `builder` and `dev` targets).
+- **`docker/posgresql.dockerfile`**: Dockerfile for the DB image (uses `postgres`).
+- **`docker-entrypoint-initdb.d/init.sql`**: database initialization script (creates `events` table).
+- **`app/`**: Go code of the application (entrypoint `app/cmd/main.go`).
 
-**Cómo ejecutar (con Docker Compose)**
-- **Construir y levantar (producción)**:
+**How to run (with Docker Compose)**
+- **Build and start (production)**:
 ```bash
 cd /Users/macbookproa2141/taller-go-repo
 docker compose build --progress=plain
@@ -22,21 +22,21 @@ docker compose up -d
 docker compose logs -f app
 ```
 
-- **Parar y eliminar contenedores**:
+- **Stop and remove containers**:
 ```bash
 docker compose down
 ```
 
-- **Recrear la base de datos desde `init.sql` (pierde datos).** Si quieres aplicar el `init.sql` nuevo debes eliminar el volumen de datos para que se vuelva a ejecutar el script de inicialización:
+- **Recreate the database from `init.sql` (loses data).** If you want to apply the new `init.sql`, you must delete the data volume so that the initialization script runs again:
 ```bash
 docker compose down
-# eliminar volumen (ATENCIÓN: borra datos)
+# delete volume (WARNING: deletes data)
 docker volume rm taller-go-repo_postgres_data
 docker compose up -d db
 ```
 
-**Modo desarrollo (live-reload con `air`)**
-- El `Dockerfile` contiene un `target: dev` que instala herramientas de desarrollo (`air` o `CompileDaemon`). Para usarlo con `docker compose` añade el `target: dev` y monta el volumen del código:
+**Development mode (live-reload with `air`)**
+- The `Dockerfile` contains a `target: dev` that installs development tools (`air` or `CompileDaemon`). To use it with `docker compose`, add the `target: dev` and mount the code volume:
 
 ```yaml
 services:
@@ -51,20 +51,20 @@ services:
       - "8080:8080"
 ```
 
-Luego construir y levantar:
+Then build and start:
 ```bash
 docker compose build --progress=plain --build-arg NODE_ENV=development
 docker compose up app
 ```
 
-O alternativamente construir la imagen `dev` y ejecutarla manualmente:
+Or alternatively build the `dev` image and run it manually:
 ```bash
 docker build -f docker/go.dockerfile --target dev -t taller-go-dev .
 docker run --rm -it -v "$(pwd)/app:/app/app" -p 8080:8080 taller-go-dev
 ```
 
-**Ejecutar localmente (sin Docker)**
-- Instala dependencias y compila:
+**Run locally (without Docker)**
+- Install dependencies and compile:
 ```bash
 cd app
 go mod tidy
@@ -72,87 +72,75 @@ go build ./cmd
 ./cmd/main
 ```
 
-**Variables de entorno relevantes**
-- `DATABASE_URL`: cadena de conexión completa (ej. `postgres://postgres:postgres@db:5432/myapp?sslmode=disable`).
-- `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_HOST`, `POSTGRES_PORT` — usadas si no existe `DATABASE_URL`.
+**Relevant environment variables**
+- `DATABASE_URL`: full connection string (e.g. `postgres://postgres:postgres@db:5432/myapp?sslmode=disable`).
+- `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_HOST`, `POSTGRES_PORT` — used if `DATABASE_URL` does not exist.
 
-**API - Endpoints y ejemplos**
+**API - Endpoints and examples**
 - **Health check**
 - `GET /api/health`
-  - Respuesta: `200 OK` con `{"status":"healthy"}`
+  - Response: `200 OK` with `{"status":"healthy"}`
 
-- **Listar eventos**
+- **List events**
 - `GET /api/events`
-  - Ejemplo:
+  - Example:
     ```bash
     curl http://localhost:8080/api/events
     ```
-  - Respuesta: `200 OK` con JSON array de eventos.
+  - Response: `200 OK` with JSON array of events.
 
-- **Crear evento**
+- **Create event**
 - `POST /api/events`
-  - Body JSON (ejemplo mínimo):
+  - JSON body (minimal example):
     ```json
     {
-      "title": "Reunión de equipo",
-      "description": "Repaso semanal",
+      "title": "Team meeting",
+      "description": "Weekly review",
       "start_time": "2025-12-20T10:00:00Z",
       "end_time": "2025-12-20T11:00:00Z"
     }
     ```
-  - Curl ejemplo:
+  - Curl example:
     ```bash
     curl -X POST http://localhost:8080/api/events \
       -H "Content-Type: application/json" \
-      -d '{"title":"Prueba UUID","description":"desc","start_time":"2025-12-20T10:00:00Z","end_time":"2025-12-20T11:00:00Z"}'
+      -d '{"title":"UUID test","description":"desc","start_time":"2025-12-20T10:00:00Z","end_time":"2025-12-20T11:00:00Z"}'
     ```
-  - Respuesta esperada: `201 Created` con el evento creado (incluye `id` UUID y `created_at`).
+  - Expected response: `201 Created` with the created event (includes `id` UUID and `created_at`).
 
-- **Actualizar evento**
-- `PUT /api/events` (o `PUT /api/events?id=<uuid>`)
-  - Body JSON (con `id` o `id` en query param):
+- **Update event**
+- `PUT /api/events` (or `PUT /api/events?id=<uuid>`)
+  - JSON body (with `id` or `id` in query param):
     ```json
     {
       "id": "a3f27f2b-...",
-      "title": "Reunión actualizada",
-      "description": "Hora cambiada",
+      "title": "Updated meeting",
+      "description": "Time changed",
       "start_time": "2025-12-20T11:00:00Z",
       "end_time": "2025-12-20T12:00:00Z"
     }
     ```
-  - Curl ejemplo (id en body):
+  - Curl example (id in body):
     ```bash
     curl -X PUT http://localhost:8080/api/events \
       -H "Content-Type: application/json" \
-      -d '{"id":"<UUID>","title":"Actualizado","description":"...","start_time":"2025-12-20T11:00:00Z","end_time":"2025-12-20T12:00:00Z"}'
+      -d '{"id":"<UUID>","title":"Updated","description":"...","start_time":"2025-12-20T11:00:00Z","end_time":"2025-12-20T12:00:00Z"}'
     ```
 
-- **Eliminar evento**
-- `DELETE /api/events?id=<uuid>`
-  - Ejemplo:
-    ```bash
-    curl -X DELETE "http://localhost:8080/api/events?id=<UUID>"
-    ```
+**Date format**
+- Use timestamps in ISO 8601 / RFC3339 format (e.g.: `2025-12-20T10:00:00Z`). The server maps these values to `time.Time`.
 
-**Formato de fecha**
-- Use timestamps en formato ISO 8601 / RFC3339 (ej.: `2025-12-20T10:00:00Z`). El servidor mapea estos valores a `time.Time`.
+**Notes on schema and UUID**
+- The database uses UUID for `id` and the `init.sql` script enables `pgcrypto` and defines `id UUID PRIMARY KEY DEFAULT gen_random_uuid()`. This allows the DB to generate the UUID automatically on insert.
+- If you already have data in the Postgres volume and want to apply the new table/column, perform a migration or recreate the volume (see section above).
 
-**Notas sobre el esquema y UUID**
-- La base usa UUID para `id` y el script `init.sql` habilita `pgcrypto` y define `id UUID PRIMARY KEY DEFAULT gen_random_uuid()`. Esto permite que la BD genere el UUID automáticamente al insertar.
-- Si ya tienes datos en el volumen de Postgres y quieres aplicar la nueva tabla/columna, realiza una migración o recrea el volumen (ver sección arriba).
-
-**Pruebas de concurrencia**
-- Para probar múltiples inserts concurrentes (verificar mutex y DB):
+**Concurrency tests**
+- To test multiple concurrent inserts (verify mutex and DB):
 ```bash
 for i in {1..10}; do
   curl -s -X POST http://localhost:8080/api/events \
     -H "Content-Type: application/json" \
-    -d '{"title":"Prueba concurrencia","description":"desc","start_time":"2025-12-20T10:00:00Z","end_time":"2025-12-20T11:00:00Z"}' &
+    -d '{"title":"Concurrency test","description":"desc","start_time":"2025-12-20T10:00:00Z","end_time":"2025-12-20T11:00:00Z"}' &
 done
 wait
 ```
-
-**Problemas comunes**
-- `pq: SSL is not enabled on the server` — asegúrate de que la conexión use `sslmode=disable` en `DATABASE_URL` o que el código lo añada automáticamente.
-- `invalid input syntax for type uuid` — ocurre cuando insertas un valor que no es UUID en una columna UUID. Si usas UUID generados por la BD, no envíes un `id` numérico.
-
